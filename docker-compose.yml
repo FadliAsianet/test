@@ -1,0 +1,7 @@
+services:
+  app-python:
+    build: .
+    container_name: aplikasi-python-saya
+    restart: unless-stopped
+    ports:
+      - "5000:5000"

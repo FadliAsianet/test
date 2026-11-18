@@ -1,15 +1,19 @@
-import time
-import requests
-from datetime import datetime
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-print("=== Aplikasi Python di Dalam Docker Mulai Berjalan ===", flush=True)
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.end_headers()
+        html = """
+        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h1>Halo dari Jenkins CI/CD (Python)! 🐍🚀</h1>
+            <p>Versi Aplikasi: <b>v1.0</b></p>
+        </div>
+        """
+        self.wfile.write(html.encode("utf-8"))
 
-while True:
-    waktu = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    try:
-        response = requests.get("https://httpbin.org", timeout=5)
-        print(f"[{waktu}] Sukses konek! Status HTTP: {response.status_code}", flush=True)
-    except Exception as e:
-        print(f"[{waktu}] Gagal konek: {e}", flush=True)
-    
-    time.sleep(5)
+if __name__ == "__main__":
+    server = HTTPServer(("0.0.0.0", 5000), SimpleHandler)
+    print("Server Python berjalan di port 5000...")
+    server.serve_forever()
