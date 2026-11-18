@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('1. Ambil Kode') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('2. Jalankan Unit Test') {
+            steps {
+                echo 'Menjalankan unit test Python...'
+                sh 'docker run --rm -v $(pwd):/app -w /app python:3.12-alpine python -m unittest'
+            }
+        }
+
+        stage('3. Build & Deploy') {
+            steps {
+                echo 'Tes lulus! Menjalankan aplikasi web Python...'
+                sh 'docker compose up -d --build --remove-orphans'
+            }
+        }
+
+        stage('4. Bersihkan Image Lama') {
+            steps {
+                sh 'docker image prune -f'
+            }
+        }
+    }
+}
