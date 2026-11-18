@@ -10,15 +10,18 @@ pipeline {
 
         stage('2. Jalankan Unit Test') {
             steps {
-                echo 'Menjalankan unit test Python...'
-                sh 'docker run --rm -v $(pwd):/app -w /app python:3.12-alpine python -m unittest'
+                echo 'Membangun image dan menjalankan unit test Python...'
+                // Build image terlebih dahulu agar semua file proyek masuk ke dalam image
+                sh 'docker compose build'
+                // Jalankan unit test langsung dari dalam image yang baru dirakit (bebas masalah path!)
+                sh 'docker compose run --rm app-python python -m unittest'
             }
         }
 
-        stage('3. Build & Deploy') {
+        stage('3. Deploy Aplikasi') {
             steps {
                 echo 'Tes lulus! Menjalankan aplikasi web Python...'
-                sh 'docker compose up -d --build --remove-orphans'
+                sh 'docker compose up -d --remove-orphans'
             }
         }
 
