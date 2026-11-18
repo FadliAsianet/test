@@ -8,6 +8,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
         html = """
         <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
             <h1>Halo dari Jenkins CI/CD (Python)! 🐍🚀</h1>
+            <h2>Tes dekku</h2>
             <p>Versi Aplikasi: <b>v1.0</b></p>
         </div>
         """
