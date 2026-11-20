@@ -1,9 +1,12 @@
-FROM python:3.12-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
+COPY package*.json ./
+RUN npm ci
+
 COPY . .
 
-EXPOSE 5000
+EXPOSE 3000
 
-CMD ["python", "app.py"]
+CMD ["npm", "run", "dev"]
