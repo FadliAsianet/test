@@ -1,4 +1,16 @@
-"scripts": {
-  "test": "jest",
-  "dev": "node app.js"
+{
+  "name": "simulasi-jenkins",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }
