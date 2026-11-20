@@ -1,34 +1,50 @@
 pipeline {
     agent any
 
+    // 1 minutes check github remote repo
+    triggers {
+        pollSCM('* * * * *')
+    }
+
     stages {
-        stage('1. Ambil Kode') {
+        stage('1. Checkout Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('2. Jalankan Unit Test') {
+        stage('2. Install Dependencies') {
             steps {
-                echo 'Membangun image dan menjalankan unit test Python...'
-                // Build image terlebih dahulu agar semua file proyek masuk ke dalam image
-                sh 'docker compose build'
-                // Jalankan unit test langsung dari dalam image yang baru dirakit (bebas masalah path!)
-                sh 'docker compose run --rm app-python python -m unittest'
+                sh 'npm ci'
             }
         }
 
-        stage('3. Deploy Aplikasi') {
+        stage('3. Run Unit Test') {
             steps {
-                echo 'Tes lulus! Menjalankan aplikasi web Python...'
-                sh 'docker compose up -d --remove-orphans'
+                // Jika unit test gagal, pipeline berhenti di sini dan aplikasi lama tetap aman
+                sh 'npm test'
             }
         }
 
-        stage('4. Bersihkan Image Lama') {
+        stage('4. Deploy / Up Aplikasi Lokal') {
             steps {
-                sh 'docker image prune -f'
+                echo 'Unit test LOLOS! Menyalakan aplikasi di port 3000...'
+                // Matikan proses lama di port 3000 jika ada, lalu jalankan yang baru di background
+                sh '''
+                    fuser -k 3000/tcp || true
+                    JENKINS_NODE_COOKIE=dontKillMe nohup npm run dev > app.log 2>&1 &
+                    sleep 2
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'SIMULASI SUKSES! Cek http://localhost:3000 di browser kamu.'
+        }
+        failure {
+            echo 'SIMULASI GAGAL! Unit test error, aplikasi tidak di-deploy.'
         }
     }
 }
