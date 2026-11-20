@@ -5,7 +5,7 @@ function hitungTotal(harga, jumlah) {
   if (harga < 0 || jumlah <= 0) {
     throw new Error('Harga atau jumlah tidak valid');
   }
-  return harga * jumlah;
+  return harga - jumlah;
 }
 
 app.get('/', (req, res) => {

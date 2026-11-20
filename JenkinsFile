@@ -12,26 +12,43 @@ pipeline {
             }
         }
 
-        stage('2. Build Docker Image') {
+        stage('2. Build Image') {
             steps {
-                sh 'docker build -t simulasi-app:latest .'
+                sh 'docker build -t simulasi-app:${BUILD_NUMBER} -t simulasi-app:latest .'
             }
         }
 
-        stage('3. Run Unit Test di Container') {
+        stage('3. Unit Test') {
             steps {
-                // Jalankan npm test di dalam container sementara (--rm otomatis menghapus container setelah tes selesai)
-                sh 'docker run --rm simulasi-app:latest npm test'
+                sh 'docker run --rm simulasi-app:${BUILD_NUMBER} npm test'
             }
         }
 
-        stage('4. Deploy / Up Container Aplikasi') {
+        stage('4. Deploy ke Staging (Port 3001)') {
             steps {
-                echo 'Unit test LOLOS! Menyalakan container aplikasi di port 3000...'
+                sh '''
+                    docker stop app-staging || true
+                    docker rm app-staging || true
+                    docker run -d \
+                      --name app-staging \
+                      --restart unless-stopped \
+                      -p 3001:3000 \
+                      simulasi-app:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        
+        stage('5. Deploy ke Production (Port 3000)') {
+            steps {
                 sh '''
                     docker stop app-prod || true
                     docker rm app-prod || true
-                    docker run -d --name app-prod -p 3000:3000 simulasi-app:latest
+                    docker run -d \
+                      --name app-prod \
+                      --restart unless-stopped \
+                      -p 3000:3000 \
+                      simulasi-app:${BUILD_NUMBER}
                 '''
             }
         }
@@ -39,10 +56,10 @@ pipeline {
 
     post {
         success {
-            echo 'SIMULASI SUKSES! Cek http://localhost:3000 di browser laptopmu.'
+            echo "Build #${BUILD_NUMBER} sukses! Staging: http://localhost:3001 | Prod: http://localhost:3000"
         }
         failure {
-            echo 'SIMULASI GAGAL! Unit test error, container lama tetap aman berjalan.'
+            echo "Build #${BUILD_NUMBER} GAGAL! Container aktif yang sudah jalan tidak disentuh."
         }
     }
 }
